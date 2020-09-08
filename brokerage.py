@@ -2,6 +2,7 @@ import bar
 import position
 import order
 import alpaca_trade_api as tradeapi
+import logging
 
 class Brokerage:
 

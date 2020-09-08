@@ -28,11 +28,6 @@ def build_profile(ticker, data_folder):
 		'shares' : stock['Shs Outstand'],
 		'debt_eq': stock['Debt/Eq'],
 		'short_perc' : stock['Short Float'],
-		'SMA20' : stock['SMA20'],
-		'SMA50' : stock['SMA50'],
-		'SMA200' : stock['SMA200'],
-		'price' : stock['Price'],
-		'rsi' : stock['RSI (14)'],
 		'earnings': stock['Earnings']
 	}
 

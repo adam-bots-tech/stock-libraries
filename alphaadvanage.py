@@ -3,22 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cache
 
-def add_bid_ask_to_profile(stock, ticker, api_key, data_folder):
-
-	def response():
-		return requests.get(f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={ticker}&interval=5min&apikey={api_key}')
-
-	fileCache = cache.get_cache('TIME_SERIES_INTRADAY', data_folder)
-	resp = fileCache.get(key=ticker, createfunc=response)
-	json = resp.json()
-
-	for key in json['Time Series (5min)']:
-		stock['bid'] = json['Time Series (5min)'][key]['3. low']
-		stock['ask'] = json['Time Series (5min)'][key]['2. high']
-		break
-
-	return stock
-
 def add_description_to_profile(stock, ticker, api_key, data_folder):
 	def response():
 		return requests.get(f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&interval=5min&apikey={api_key}')
