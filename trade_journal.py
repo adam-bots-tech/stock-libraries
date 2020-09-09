@@ -24,10 +24,10 @@ class TradeJournal():
 		ss = ezsheets.createSpreadsheet(self.title)
 		queued_trades = ss[0]
 		queued_trades.title = "Queued Trades"
-		queued_trades.updateRow(1, ['Ticker', 'Type', 'Entry Price', 'Exit Price', 'Stop Loss', 'Notes', 'Expiration in Days', 'Metadata' ])
+		queued_trades.updateRow(1, ['Ticker', 'Type', 'Entry Price', 'Exit Price', 'Stop Loss', 'Notes', 'Expiration in Days', 'Metadata', 'Base64' ])
 		trades = ss.createSheet('Trades')
 		trades.updateRow(1, ['ID', 'Create Date', 'Ticker', 'Type', 'Status', 'Entry Date', 'Exit Date', 'Planned Entry Price', 'Planned Exit Price', 
-			'Stop Loss', 'Shares', 'Entry Price', 'Exit Price', 'Gain', 'Buy Order', 'Sell Order', 'Notes', 'Comments', 'Expiration in Days', 'Metadata'])
+			'Stop Loss', 'Shares', 'Entry Price', 'Exit Price', 'Gain', 'Buy Order', 'Sell Order', 'Notes', 'Comments', 'Metadata', 'Buy Metadata','Sale Metadata','Base64','Buy Base64','Sale Base64'])
 		return ss
 
 	def get_queued_trades(self):
@@ -38,28 +38,40 @@ class TradeJournal():
 		self.journal.refresh()
 		self.journal[0].updateRows([headerRow])
 
-	def create_queued_trade(self, row_num, ticker, type, entry, exit, stop_loss, notes, expiration, metadata):
+	def create_queued_trade(self, row_num, ticker, type, entry, exit, stop_loss, notes, expiration, metadata, base64):
 		self.journal.refresh()
-		self.journal[0].updateRow(row_num, [ticker, type, entry, exit, stop_loss, notes, expiration, metadata])
+		self.journal[0].updateRow(row_num, [ticker, type, entry, exit, stop_loss, notes, expiration, metadata, base64])
 
 
-	def create_trade_record(self, trade, notes, expiration, metadata):
+	def create_trade_record(self, trade, notes, metadata, base64):
 		self.journal.refresh()
 		self.journal[1].updateRow(trade.id + 1, [trade.id, trade.create_date, trade.ticker, trade.type, trade.status, trade.entry_date, trade.exit_date, 
 			trade.planned_entry_price, trade.planned_exit_price, trade.stop_loss, trade.shares, trade.actual_entry_price, trade.actual_exit_price, '', trade.buy_order_id, trade.sell_order_id, notes, '',
-			expiration, metadata])
+			metadata, '', '', base64, '', ''])
 
-	def update_trade_record(self, trade):
+	def update_trade_record(self, trade, sale_metadata=None, buy_metadata=None, sale_base64=None, buy_base64=None):
 		self.journal.refresh()
 		row = self.journal[1].getRow(trade.id + 1)
 		notes = row[16]
 		comments = row[17]
-		expiration = row[18]
-		metadata = row[19]
+		metadata = row[18]
+		base64 = row[21]
+
+		if sale_metadata == None:
+			sale_metadata = row[20]
+
+		if buy_metadata == None:
+			buy_metadata = row[19]
+
+		if sale_base64 == None:
+			sale_base64 = row[23]
+
+		if buy_base64 == None:
+			buy_base64 = row[22]
 		
 		if trade.actual_exit_price > trade.actual_entry_price:
 			gain = True
 
 		self.journal[1].updateRow(trade.id + 1, [trade.id, trade.create_date, trade.ticker, trade.type, trade.status, trade.entry_date, trade.exit_date, 
 			trade.planned_entry_price, trade.planned_exit_price, trade.stop_loss, trade.shares, trade.actual_entry_price, trade.actual_exit_price, gain, trade.buy_order_id, trade.sell_order_id, notes, comments,
-			expiration, metadata])
+			metadata, buy_metadata, sale_metadata, base64, buy_base64, sale_base64])

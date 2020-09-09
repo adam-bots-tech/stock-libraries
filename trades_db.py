@@ -62,23 +62,23 @@ class DB:
 	def create_new_long_trade(self, ticker, entry, exit, stop_loss, expiration_date):
 		return self.add(self.generate_default_trade(ticker, 'long', entry, exit, stop_loss, expiration_date))
 
-	def open(self, create_date, shares, price):
+	def open(self, create_date, shares, price, buy_metadata, buy_base64):
 		conn = self.__connect__()
 		c = conn.cursor()
 		self.__create_table__(c)
 		c.execute(f"UPDATE trades SET status = 'OPEN', shares = {shares}, actual_entry_price = {price}, entry_date = {datetime.timestamp(datetime.now())} WHERE create_date = {create_date}")
 		conn.commit()
 		conn.close()
-		self.journal.update_trade_record(self.get(create_date))
+		self.journal.update_trade_record(self.get(create_date), buy_metadata=buy_metadata, buy_base64=buy_base64)
 
-	def close(self, create_date, price):
+	def close(self, create_date, price, sale_metadata, sale_base64):
 		conn = self.__connect__()
 		c = conn.cursor()
 		self.__create_table__(c)
 		c.execute(f"UPDATE trades SET status = 'CLOSED', actual_exit_price = {price}, exit_date = {datetime.timestamp(datetime.now())} WHERE create_date = {create_date}")
 		conn.commit()
 		conn.close()
-		self.journal.update_trade_record(self.get(create_date))
+		self.journal.update_trade_record(self.get(create_date), sale_metadata=sale_metadata, sale_base64=sale_base64)
 
 	def cancel(self, create_date):
 		conn = self.__connect__()

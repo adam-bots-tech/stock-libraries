@@ -42,28 +42,40 @@ class Brokerage:
 			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
 			return None
 
-	def get_last_200_minutes_data_set(self, ticker):
+	def get_last_200_minutes_data_set(self, ticker, with_time = False):
 		try:
 			bars = self.api.get_barset(ticker, 'minute', 200)
 			ds=[]
 
-			for bar in bars[ticker]:
-				ds.append([bar.o, bar.c, bar.h, bar.l, bar.v])
+			if with_time:
+				for bar in bars[ticker]:
+					ds.append([bar.o, bar.c, bar.h, bar.l, bar.v, bar.t])
 
-			return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume'])
+				return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume', 'time'])
+			else:
+				for bar in bars[ticker]:
+					ds.append([bar.o, bar.c, bar.h, bar.l, bar.v])
+
+				return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume'])
 		except tradeapi.rest.APIError as err:
 			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
 			return None
 
-	def get_last_200_15minutes_data_set(self, ticker):
+	def get_last_200_15minutes_data_set(self, ticker, with_time=False):
 		try:
 			bars = self.api.get_barset(ticker, '15Min', 200)
 			ds=[]
 
-			for bar in bars[ticker]:
-				ds.append([bar.o, bar.c, bar.h, bar.l, bar.v])
+			if with_time:
+				for bar in bars[ticker]:
+					ds.append([bar.o, bar.c, bar.h, bar.l, bar.v, bar.t])
 
-			return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume'])
+				return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume', 'time'])
+			else:
+				for bar in bars[ticker]:
+					ds.append([bar.o, bar.c, bar.h, bar.l, bar.v])
+
+				return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume'])
 		except tradeapi.rest.APIError as err:
 			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
 			return None
