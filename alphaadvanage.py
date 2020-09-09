@@ -52,4 +52,3 @@ def create_quarterly_financials_chart(ticker, chart_path, api_key, data_folder):
 	plt.savefig(chart_path)
 	plt.close()
 
-

@@ -14,10 +14,10 @@ class DB:
 	def __create_table__(self, c):
 		c.execute('''CREATE TABLE IF NOT EXISTS trades (create_date REAL, ticker TEXT, entry_date REAL, exit_date REAL, shares REAL, 
 			planned_exit_price REAL, planned_entry_price REAL, stop_loss REAL, actual_exit_price REAL, actual_entry_price REAL, status TEXT, buy_order_id TEXT,
-			sell_order_id TEXT, type TEXT, id INTEGER PRIMARY KEY AUTOINCREMENT )''')
+			sell_order_id TEXT, type TEXT, id INTEGER PRIMARY KEY AUTOINCREMENT, expiration_date INTEGER )''')
 
-	def generate_default_trade(self, ticker, type, entry, exit, stop_loss):
-		return Trade(datetime.timestamp(datetime.now()), ticker, 0.0, 0.0, 0.0, exit, entry, stop_loss, 0.0, 0.0, 'QUEUED', '', '', type, 0)
+	def generate_default_trade(self, ticker, type, entry, exit, stop_loss, expiration_date):
+		return Trade(datetime.timestamp(datetime.now()), ticker, 0.0, 0.0, 0.0, exit, entry, stop_loss, 0.0, 0.0, 'QUEUED', '', '', type, 0, expiration_date)
 
 	def get(self, create_date):
 		conn = self.__connect__()
@@ -29,7 +29,7 @@ class DB:
 		if (data == None):
 			return None
 		else:
-			return Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14])
+			return Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15])
 
 	def get_by_ticker(self, ticker):
 		conn = self.__connect__()
@@ -41,7 +41,7 @@ class DB:
 		if (data == None):
 			return None
 		else:
-			return Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14])
+			return Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15])
 
 
 	def add(self, trade):
@@ -49,18 +49,18 @@ class DB:
 		c = conn.cursor()
 		self.__create_table__(c)
 		insert = f'''INSERT INTO trades(create_date, ticker, entry_date, exit_date, shares, planned_exit_price, planned_entry_price, stop_loss, 
-			actual_exit_price, actual_entry_price, status, buy_order_id, sell_order_id, type) 
+			actual_exit_price, actual_entry_price, status, buy_order_id, sell_order_id, type, expiration_date) 
 			VALUES ({trade.create_date}, '{trade.ticker}', {trade.entry_date}, {trade.exit_date}, 
 			{trade.shares}, {trade.planned_exit_price}, {trade.planned_entry_price}, {trade.stop_loss}, {trade.actual_exit_price}, 
-			{trade.actual_entry_price}, '{trade.status}', '{trade.buy_order_id}', '{trade.sell_order_id}', '{trade.type}')'''
+			{trade.actual_entry_price}, '{trade.status}', '{trade.buy_order_id}', '{trade.sell_order_id}', '{trade.type}', {trade.expiration_date})'''
 		logging.debug(insert)
 		c.execute(insert)
 		conn.commit()
 		conn.close()
 		return self.get(trade.create_date)
 
-	def create_new_long_trade(self, ticker, entry, exit, stop_loss):
-		return self.add(self.generate_default_trade(ticker, 'long', entry, exit, stop_loss))
+	def create_new_long_trade(self, ticker, entry, exit, stop_loss, expiration_date):
+		return self.add(self.generate_default_trade(ticker, 'long', entry, exit, stop_loss, expiration_date))
 
 	def open(self, create_date, shares, price):
 		conn = self.__connect__()
@@ -195,7 +195,7 @@ class DB:
 		trades = []
 
 		for data in c.execute('SELECT * FROM trades ORDER BY create_date'):
-			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14]))
+			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15]))
 
 		conn.close()
 		return trades
@@ -207,7 +207,7 @@ class DB:
 		trades = []
 
 		for data in c.execute("SELECT * FROM trades WHERE status = 'OPEN' AND type = 'long' ORDER BY create_date ASC"):
-			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14]))
+			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15]))
 
 		conn.close()
 		return trades
@@ -219,7 +219,7 @@ class DB:
 		trades = []
 
 		for data in c.execute("SELECT * FROM trades WHERE status = 'BUYING' ORDER BY create_date ASC"):
-			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14]))
+			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15]))
 
 		conn.close()
 		return trades
@@ -231,7 +231,7 @@ class DB:
 		trades = []
 
 		for data in c.execute("SELECT * FROM trades WHERE status = 'SELLING' ORDER BY create_date ASC"):
-			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14]))
+			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15]))
 
 		conn.close()
 		return trades
@@ -243,7 +243,7 @@ class DB:
 		trades = []
 
 		for data in c.execute("SELECT * FROM trades WHERE status = 'OPEN' OR status = 'BUYING' OR status = 'SELLING' ORDER BY create_date ASC"):
-			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14]))
+			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15]))
 
 		conn.close()
 		return trades
@@ -255,7 +255,7 @@ class DB:
 		trades = []
 
 		for data in c.execute("SELECT * FROM trades WHERE status = 'QUEUED' ORDER BY create_date ASC"):
-			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14]))
+			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15]))
 
 		conn.close()
 		return trades
@@ -267,7 +267,7 @@ class DB:
 		trades = []
 
 		for data in c.execute("SELECT * FROM trades WHERE status = 'QUEUED' AND type = 'long' ORDER BY create_date ASC"):
-			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14]))
+			trades.append(Trade(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11],data[12],data[13],data[14],data[15]))
 
 		conn.close()
 		return trades

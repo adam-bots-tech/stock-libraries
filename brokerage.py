@@ -3,6 +3,7 @@ import position
 import order
 import alpaca_trade_api as tradeapi
 import logging
+import pandas as pd
 
 class Brokerage:
 
@@ -28,15 +29,41 @@ class Brokerage:
 			logging.error(f'POST /position API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
 
 			if err.code == '404':
-				return False
-			else:
 				return None
+			else:
+				return False
 
 	# Return a Bar object or None if 404
 	def get_last_bar(self, ticker):
 		try:
 			barset = self.api.get_barset(ticker, 'minute', 1)
 			return bar.Bar(barset[ticker][0])
+		except tradeapi.rest.APIError as err:
+			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			return None
+
+	def get_last_200_minutes_data_set(self, ticker):
+		try:
+			bars = self.api.get_barset(ticker, 'minute', 200)
+			ds=[]
+
+			for bar in bars[ticker]:
+				ds.append([bar.o, bar.c, bar.h, bar.l, bar.v])
+
+			return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume'])
+		except tradeapi.rest.APIError as err:
+			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			return None
+
+	def get_last_200_15minutes_data_set(self, ticker):
+		try:
+			bars = self.api.get_barset(ticker, '15Min', 200)
+			ds=[]
+
+			for bar in bars[ticker]:
+				ds.append([bar.o, bar.c, bar.h, bar.l, bar.v])
+
+			return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume'])
 		except tradeapi.rest.APIError as err:
 			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
 			return None

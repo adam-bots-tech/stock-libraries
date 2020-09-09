@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 class StateDB:
 	def __init__(self, database):
@@ -25,10 +26,33 @@ class StateDB:
 			conn.close()
 			return data[1] == 'True'
 
+	def get_last_prices(self):
+		conn = self.__connect__()
+		c = conn.cursor()
+		self.__create_table__(c)
+		c.execute(f"SELECT * FROM properties WHERE key='last_prices'")
+		data = c.fetchone()
+		if (data == None):
+			c.execute('''INSERT INTO properties VALUES ('last_prices', '{}')''')
+			conn.commit()
+			conn.close()
+			return {}
+		else:
+			conn.close()
+			return json.loads(data[1])
+
 	def set_market_open(self, is_open):
 		conn = self.__connect__()
 		c = conn.cursor()
 		self.__create_table__(c)
 		c.execute(f"UPDATE properties SET value = '{is_open}' WHERE key = 'market_open'")
+		conn.commit()
+		conn.close()
+
+	def set_last_prices(self, last_prices):
+		conn = self.__connect__()
+		c = conn.cursor()
+		self.__create_table__(c)
+		c.execute(f"UPDATE properties SET value = '{json.dumps(last_prices)}' WHERE key = 'last_prices'")
 		conn.commit()
 		conn.close()

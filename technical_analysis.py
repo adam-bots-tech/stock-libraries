@@ -1,23 +1,32 @@
-
-import pandas as pd
 import stockstats
 
-def analyze(bars):
-	ds=[]
+def analyze(ticker, brokerage):
+	minute_df = brokerage.get_last_200_minutes_data_set(ticker)
+	minute_15_df = brokerage.get_last_200_15minutes_data_set(ticker)
+	minute_stock = stockstats.StockDataFrame.retype(minute_df)
+	minutes_15_stock = stockstats.StockDataFrame.retype(minute_15_df)
+	minute_count = minute_df.shape[0]
+	minute_15_count = minute_15_df.shape[0]
 
-	for bar in bars:
-		ds.append([bar.o, bar.c, bar.h, bar.l, bar.v])
-
-	df = pd.DataFrame(data=ds, index=range(0, len(bars)), columns=['open','close','high','low','volume'])
-	stock = stockstats.StockDataFrame.retype(df)
-
-	stats = {}
-	stats['rsi'] = stock['rsi_14'][len(bars) - 1]
-	stats['macd'] = stock['macd'][len(bars) - 1]
-	stats['sma50'] = stock['close_50_sma'][len(bars) - 1]
-	stats['sma100'] = stock['close_100_sma'][len(bars) - 1]
-	stats['sma200'] = stock['close_200_sma'][len(bars) - 1]
-	stats['volume'] = stock['volume'][len(bars) - 1]
-	return stats
-
-
+	return {
+		'1min': {
+			'open': '{:.2f}'.format(minute_stock['open'][minute_count - 1]),
+			'close': '{:.2f}'.format(minute_stock['close'][minute_count - 1]),
+			'sma50': '{:.2f}'.format(minute_stock['close_50_sma'][minute_count - 1]),
+			'sma100': '{:.2f}'.format(minute_stock['close_100_sma'][minute_count - 1]),
+			'sma200': '{:.2f}'.format(minute_stock['close_200_sma'][minute_count - 1]),
+			'rsi': '{:.2f}'.format(minute_stock['rsi_14'][minute_count - 1]),
+			'macd': '{:.2f}'.format(minute_stock['macd'][minute_count - 1]),
+			'volume': str(minute_stock['volume'][minute_count - 1])
+		},
+		'15min': {
+			'open': '{:.2f}'.format(minute_stock['open'][minute_count - 1]),
+			'close': '{:.2f}'.format(minute_stock['close'][minute_count - 1]),
+			'sma50': '{:.2f}'.format(minutes_15_stock['close_50_sma'][minute_15_count - 1]),
+			'sma100': '{:.2f}'.format(minutes_15_stock['close_100_sma'][minute_15_count - 1]),
+			'sma200': '{:.2f}'.format(minutes_15_stock['close_200_sma'][minute_15_count - 1]),
+			'rsi': '{:.2f}'.format(minutes_15_stock['rsi_14'][minute_15_count - 1]),
+			'macd': '{:.2f}'.format(minutes_15_stock['macd'][minute_15_count - 1]),
+			'volume': str(minutes_15_stock['volume'][minute_15_count - 1])
+		}
+	}
