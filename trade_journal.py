@@ -56,6 +56,7 @@ class TradeJournal():
 		comments = row[17]
 		metadata = row[18]
 		base64 = row[21]
+		gain = False
 
 		if sale_metadata == None:
 			sale_metadata = row[20]
