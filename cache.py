@@ -9,5 +9,5 @@ def get_cache(name, data_folder):
 	}
 
 	cache_manager = CacheManager(**parse_cache_config_options(cache_opts))
-	cache = cache_manager.get_cache(name, type='file', expire=60)
+	cache = cache_manager.get_cache(name, type='file', expire=30)
 	return cache

@@ -4,20 +4,22 @@ import order
 import alpaca_trade_api as tradeapi
 import logging
 import pandas as pd
+import cache
 
 class Brokerage:
 
-	def __init__(self, paper_trading_on, key_id, secret_key):
+	def __init__(self, paper_trading_on, key_id, secret_key, data_folder):
 		if (paper_trading_on == True):
 			self.api = tradeapi.REST(key_id, secret_key, base_url='https://paper-api.alpaca.markets')
 		else:
 			self.api = tradeapi.REST(key_id, secret_key)
+		self.data_folder = data_folder
 
 	def is_open(self):
 		try:
 			return self.api.get_clock().is_open
 		except tradeapi.rest.APIError as err:
-			logging.error(f'POST /clock API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			logging.error(f'POST /clock API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
 	# Return a Position object or None if 404
@@ -26,21 +28,31 @@ class Brokerage:
 			p = self.api.get_position(ticker)
 			return position.Position(p.symbol, p.qty, p.avg_entry_price)
 		except tradeapi.rest.APIError as err:
-			logging.error(f'POST /position API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			logging.error(f'POST /position API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 
 			if err.code == '404':
 				return None
 			else:
 				return False
 
-	# Return a Bar object or None if 404
-	def get_last_bar(self, ticker):
-		try:
-			barset = self.api.get_barset(ticker, 'minute', 1)
-			return bar.Bar(barset[ticker][0])
-		except tradeapi.rest.APIError as err:
-			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
-			return None
+	# Return a list with last three Bar objects or None if 404
+	def get_last_three_bars(self, ticker):
+		def bars():
+			try:
+				barset = self.api.get_barset(ticker, 'minute', 3)
+				bars = []
+
+				for b in barset[ticker]:
+					bars.append(bar.Bar(b))
+
+				return bars
+			except tradeapi.rest.APIError as err:
+				logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
+				return None
+
+
+		fileCache = cache.get_cache('LAST_THREE_BARS', self.data_folder)
+		return fileCache.get(key=ticker, createfunc=bars)
 
 	def get_last_200_minutes_data_set(self, ticker, with_time = False):
 		try:
@@ -58,10 +70,11 @@ class Brokerage:
 
 				return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume'])
 		except tradeapi.rest.APIError as err:
-			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
 	def get_last_200_15minutes_data_set(self, ticker, with_time=False):
+
 		try:
 			bars = self.api.get_barset(ticker, '15Min', 200)
 			ds=[]
@@ -77,7 +90,7 @@ class Brokerage:
 
 				return pd.DataFrame(data=ds, index=range(0, len(bars[ticker])), columns=['open','close','high','low','volume'])
 		except tradeapi.rest.APIError as err:
-			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
 	# Return order id or None if failed
@@ -93,7 +106,7 @@ class Brokerage:
 			)
 			return order.client_order_id
 		except tradeapi.rest.APIError as err:
-			logging.error(f'POST /order API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			logging.error(f'POST /order API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
 	# Return order id or None if failed
@@ -109,7 +122,7 @@ class Brokerage:
 			)
 			return order.client_order_id
 		except tradeapi.rest.APIError as err:
-			logging.error(f'POST /order API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			logging.error(f'POST /order API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
 	# Return Order object or None if 404
@@ -118,7 +131,7 @@ class Brokerage:
 			o = self.api.get_order_by_client_order_id(order_id)
 			return order.Order(o.client_order_id, o.status, o.filled_avg_price, o.qty, o.replaced_by)
 		except tradeapi.rest.APIError as err:
-			logging.error(f'GET /order API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			logging.error(f'GET /order API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
 	def get_buying_power(self):
@@ -126,5 +139,5 @@ class Brokerage:
 			account = self.api.get_account()
 			return float(account.cash)
 		except tradeapi.rest.APIError as err:
-			logging.error(f'GET /account API Code: {err.code} HTTP Code: {err.statuc_code} Message: {err.message}')
+			logging.error(f'GET /account API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
