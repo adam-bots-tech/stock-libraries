@@ -56,3 +56,39 @@ class StateDB:
 		c.execute(f"UPDATE properties SET value = '{json.dumps(last_prices)}' WHERE key = 'last_prices'")
 		conn.commit()
 		conn.close()
+
+	def remove_buy_price_marker(self, ticker, id):
+		prices = self.get_last_prices()
+		if 'buy'+ticker+str(id) in prices.keys():
+			del prices['buy'+ticker+str(id)]
+		self.set_last_prices(prices)
+
+	def remove_sale_price_marker(self, ticker, id):
+		prices = self.get_last_prices()
+		if 'buy'+ticker+str(id) in prices.keys():
+			del prices['buy'+ticker+str(id)]
+		self.set_last_prices(prices)
+
+	def set_sale_price_marker(self, ticker, id):
+		prices = self.get_last_prices()
+		prices['sell'+ticker+str(id)] = True
+		self.set_last_prices(prices)
+
+	def get_sale_price_marker(self, ticker, id):
+		prices = self.get_last_prices()
+		if 'sell'+ticker+str(id) not in prices.keys() or prices['sell'+ticker+str(id)] == False: 
+			return False
+		else:
+			return True
+
+	def set_buy_price_marker(self, ticker, id):
+		prices = self.get_last_prices()
+		prices['buy'+ticker+str(id)] = True
+		self.set_last_prices(prices)
+
+	def get_buy_price_marker(self, ticker, id):
+		prices = self.get_last_prices()
+		if 'buy'+ticker+str(id) not in prices.keys() or prices['buy'+ticker+str(id)] == False: 
+			return False
+		else:
+			return True
