@@ -137,6 +137,8 @@ class Brokerage:
 	def get_buying_power(self):
 		try:
 			account = self.api.get_account()
+			if account.daytrade_count >= 4:
+				return False
 			return float(account.cash)
 		except tradeapi.rest.APIError as err:
 			logging.error(f'GET /account API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
