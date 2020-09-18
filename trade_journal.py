@@ -24,7 +24,7 @@ class TradeJournal():
 		ss = ezsheets.createSpreadsheet(self.title)
 		queued_trades = ss[0]
 		queued_trades.title = "Queued Trades"
-		queued_trades.updateRow(1, ['Ticker', 'Type', 'Min Entry Price', 'Max Entry Price', 'Exit Price', 'Stop Loss', 'Notes', 'Expiration in Days', 'Metadata'])
+		queued_trades.updateRow(1, ['Ticker', 'Type', 'Entry Price', 'Exit Price', 'Stop Loss', 'Notes', 'Expiration in Days', 'Metadata'])
 		trades = ss.createSheet('Trades')
 		trades.updateRow(1, ['ID', 'Create Date', 'Ticker', 'Type', 'Status', 'Entry Date', 'Exit Date', 'Planned Entry Price', 'Planned Exit Price', 
 			'Stop Loss', 'Shares', 'Entry Price', 'Exit Price', 'Gain', 'Buy Order', 'Sell Order', 'Notes', 'Comments', 'Metadata', 'Buy Metadata','Sale Metadata'])
@@ -38,15 +38,15 @@ class TradeJournal():
 		self.journal.refresh()
 		self.journal[0].updateRows([headerRow])
 
-	def create_queued_trade(self, row_num, ticker, type, min_entry, max_entry, exit, stop_loss, notes, expiration, metadata):
+	def create_queued_trade(self, row_num, ticker, type, entry, exit, stop_loss, notes, expiration, metadata):
 		self.journal.refresh()
-		self.journal[0].updateRow(row_num, [ticker, type, min_entry, max_entry, exit, stop_loss, notes, expiration, metadata])
+		self.journal[0].updateRow(row_num, [ticker, type, min_entry, exit, stop_loss, notes, expiration, metadata])
 
 
 	def create_trade_record(self, trade, notes, metadata):
 		self.journal.refresh()
 		self.journal[1].updateRow(trade.id + 1, [trade.id, trade.create_date, trade.ticker, trade.type, trade.status, trade.entry_date, trade.exit_date, 
-			str(trade.planned_min_entry_price) + '-' + str(trade.planned_max_entry_price), trade.planned_exit_price, trade.stop_loss, trade.shares, trade.actual_entry_price, 
+			trade.planned_entry_price, trade.planned_exit_price, trade.stop_loss, trade.shares, trade.actual_entry_price, 
 			trade.actual_exit_price, '', trade.buy_order_id, trade.sell_order_id, notes, '', metadata, '', ''])
 
 	def update_trade_record(self, trade, sale_metadata=None, buy_metadata=None):
@@ -67,5 +67,5 @@ class TradeJournal():
 			gain = True
 
 		self.journal[1].updateRow(trade.id + 1, [trade.id, trade.create_date, trade.ticker, trade.type, trade.status, trade.entry_date, trade.exit_date, 
-			str(trade.planned_min_entry_price) + '-' + str(trade.planned_max_entry_price), trade.planned_exit_price, trade.stop_loss, trade.shares, trade.actual_entry_price, 
+			trade.planned_entry_price, trade.planned_exit_price, trade.stop_loss, trade.shares, trade.actual_entry_price, 
 			trade.actual_exit_price, gain, trade.buy_order_id, trade.sell_order_id, notes, comments, metadata, buy_metadata, sale_metadata])
