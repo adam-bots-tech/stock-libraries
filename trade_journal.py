@@ -40,7 +40,7 @@ class TradeJournal():
 
 	def create_queued_trade(self, row_num, ticker, type, entry, exit, stop_loss, notes, expiration, metadata, end_of_day):
 		self.journal.refresh()
-		self.journal[0].updateRow(row_num, [ticker, type, min_entry, exit, stop_loss, notes, expiration, metadata, end_of_day])
+		self.journal[0].updateRow(row_num, [ticker, type, entry, exit, stop_loss, notes, expiration, metadata, end_of_day])
 
 
 	def create_trade_record(self, trade, notes, metadata):

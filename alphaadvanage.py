@@ -34,9 +34,13 @@ def create_quarterly_financials_chart(ticker, chart_path, api_key, data_folder):
 	i = 0
 	for report in json['quarterlyReports']:
 		i += 1
+
+		if report['grossProfit'] == 'None' or report['grossProfit'] == None:
+			continue
+
 		date.append(report['fiscalDateEnding'])
-		revenue.append(int(report['totalRevenue']))
-		profit.append(int(report['grossProfit']))
+		revenue.append(float(report['totalRevenue']))
+		profit.append(float(report['grossProfit']))
 		if i >= 8:
 			break
 

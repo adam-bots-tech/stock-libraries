@@ -134,11 +134,11 @@ class DB:
 		conn.close()
 		self.journal.update_trade_record(self.get(create_date))
 
-	def stop_loss(self, create_date, shares, order_id):
+	def stop_loss(self, create_date):
 		conn = self.__connect__()
 		c = conn.cursor()
 		self.__create_table__(c)
-		c.execute(f"UPDATE trades SET status = 'NO BUY. PRICE DROPPED BELOW STOP LOSS', shares = {shares}, buy_order_id = '{order_id}' WHERE create_date = {create_date}")
+		c.execute(f"UPDATE trades SET status = 'NO BUY. PRICE DROPPED BELOW STOP LOSS' WHERE create_date = {create_date}")
 		conn.commit()
 		conn.close()
 		self.journal.update_trade_record(self.get(create_date))
