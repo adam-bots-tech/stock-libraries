@@ -36,10 +36,10 @@ class Brokerage:
 				return False
 
 	# Return a list with last three Bar objects or None if 404
-	def get_last_three_bars(self, ticker):
+	def get_last_ten_bars(self, ticker):
 		def bars():
 			try:
-				barset = self.api.get_barset(ticker, 'minute', 3)
+				barset = self.api.get_barset(ticker, 'minute', 10)
 				bars = []
 
 				for b in barset[ticker]:
@@ -54,9 +54,9 @@ class Brokerage:
 		fileCache = cache.get_cache('LAST_THREE_BARS', self.data_folder)
 		return fileCache.get(key=ticker, createfunc=bars)
 
-	def get_last_200_minutes_data_set(self, ticker, with_time = False):
+	def get_last_250_minutes_data_set(self, ticker, with_time = False):
 		try:
-			bars = self.api.get_barset(ticker, 'minute', 200)
+			bars = self.api.get_barset(ticker, 'minute', 250)
 			ds=[]
 
 			if with_time:
@@ -73,10 +73,10 @@ class Brokerage:
 			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
-	def get_last_200_15minutes_data_set(self, ticker, with_time=False):
+	def get_last_250_15minutes_data_set(self, ticker, with_time=False):
 
 		try:
-			bars = self.api.get_barset(ticker, '15Min', 200)
+			bars = self.api.get_barset(ticker, '15Min', 250)
 			ds=[]
 
 			if with_time:

@@ -24,7 +24,7 @@ class TradeJournal():
 		ss = ezsheets.createSpreadsheet(self.title)
 		queued_trades = ss[0]
 		queued_trades.title = "Queued Trades"
-		queued_trades.updateRow(1, ['Ticker', 'Type', 'Entry Price', 'Exit Price', 'Stop Loss', 'Notes', 'Expiration in Days', 'Metadata'])
+		queued_trades.updateRow(1, ['Ticker', 'Type', 'Entry Price', 'Exit Price', 'Stop Loss', 'Notes', 'Expiration in Days', 'Metadata', 'Sell At End of Day'])
 		trades = ss.createSheet('Trades')
 		trades.updateRow(1, ['ID', 'Create Date', 'Ticker', 'Type', 'Status', 'Entry Date', 'Exit Date', 'Planned Entry Price', 'Planned Exit Price', 
 			'Stop Loss', 'Shares', 'Entry Price', 'Exit Price', 'Gain', 'Buy Order', 'Sell Order', 'Notes', 'Comments', 'Metadata', 'Buy Metadata','Sale Metadata'])
@@ -38,9 +38,9 @@ class TradeJournal():
 		self.journal.refresh()
 		self.journal[0].updateRows([headerRow])
 
-	def create_queued_trade(self, row_num, ticker, type, entry, exit, stop_loss, notes, expiration, metadata):
+	def create_queued_trade(self, row_num, ticker, type, entry, exit, stop_loss, notes, expiration, metadata, end_of_day):
 		self.journal.refresh()
-		self.journal[0].updateRow(row_num, [ticker, type, min_entry, exit, stop_loss, notes, expiration, metadata])
+		self.journal[0].updateRow(row_num, [ticker, type, min_entry, exit, stop_loss, notes, expiration, metadata, end_of_day])
 
 
 	def create_trade_record(self, trade, notes, metadata):
