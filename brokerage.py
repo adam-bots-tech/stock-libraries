@@ -94,15 +94,21 @@ class Brokerage:
 			return None
 
 	# Return order id or None if failed
-	def sell(self, ticker, shares):
+	def sell(self, ticker, shares, extended=False):
 		try:
+			if extended:
+				hours = 'true'
+			else:
+				hours = 'false'
+				
 			order = self.api.submit_order(
 			    symbol=ticker,
 			    side='sell',
 			    type='market',
 			    qty=f'{shares}',
 			    time_in_force='gtc',
-			    order_class='simple'
+			    order_class='simple',
+			    extended_hours=hours
 			)
 			return order.client_order_id
 		except tradeapi.rest.APIError as err:
