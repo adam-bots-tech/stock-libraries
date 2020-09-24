@@ -14,6 +14,19 @@ class StockMath:
 
 		return three_bar_avg / 3
 
+	def sma_5_close(self, bars):
+		three_bar_avg = 0.0
+
+		i = 0
+		for bar in bars:
+			if i >= 3:
+				break
+
+			three_bar_avg += bar.close
+			i += 1
+
+		return three_bar_avg / 5
+
 	def rsi_10_close(self, bars):
 		gain = 0.0
 		gain_count = 0
