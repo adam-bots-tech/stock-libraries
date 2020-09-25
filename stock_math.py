@@ -1,5 +1,6 @@
 import bar
 
+#Trying to get rid of the stock stats library slowly
 class StockMath:
 	def sma_3_close(self, bars):
 		three_bar_avg = 0.0
