@@ -6,6 +6,9 @@ import logging
 import pandas as pd
 import cache
 
+#All logic for connecting to the brokerage, submitting and receiving data is encapsulated in a single module and class.
+#As a result, to use a different brokerage company with the bot, we just simply create a subclass of Brokerage and overwrite
+#all the methods.
 class Brokerage:
 
 	def __init__(self, paper_trading_on, key_id, secret_key, data_folder):
@@ -15,6 +18,7 @@ class Brokerage:
 			self.api = tradeapi.REST(key_id, secret_key)
 		self.data_folder = data_folder
 
+	# Return True if the market is open, None if we receive an API error
 	def is_open(self):
 		try:
 			return self.api.get_clock().is_open
@@ -22,20 +26,7 @@ class Brokerage:
 			logging.error(f'POST /clock API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
-	# Return a Position object or None if 404
-	def get_position(self, ticker):
-		try:
-			p = self.api.get_position(ticker)
-			return position.Position(p.symbol, p.qty, p.avg_entry_price)
-		except tradeapi.rest.APIError as err:
-			logging.error(f'POST /position API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
-
-			if err.code == '404':
-				return None
-			else:
-				return False
-
-	# Return a list with last three Bar objects or None if 404
+	# Return a list with last ten minutes worth of Bar objects or None if we receive an API error
 	def get_last_ten_bars(self, ticker):
 		def bars():
 			try:
@@ -54,6 +45,7 @@ class Brokerage:
 		fileCache = cache.get_cache('LAST_THREE_BARS', self.data_folder)
 		return fileCache.get(key=ticker, createfunc=bars)
 
+	#Returns a panda.DataFrame with 250 minute bars worth of data or None if we received an API Err. Used for technical analysis of the stock at the time of sale.
 	def get_last_250_minutes_data_set(self, ticker, with_time = False):
 		try:
 			bars = self.api.get_barset(ticker, 'minute', 250)
@@ -73,6 +65,7 @@ class Brokerage:
 			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
+	#Returns a panda.DataFrame with 250 15-minute bars worth of data or None if we received an API Err. Used for technical analysis of the stock at the time of sale.
 	def get_last_250_15minutes_data_set(self, ticker, with_time=False):
 
 		try:
@@ -93,7 +86,7 @@ class Brokerage:
 			logging.error(f'POST /bars/minute API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
-	# Return order id or None if failed
+	# Submits a good to close market sell order. Returns order id or None if we received an API Error
 	def sell(self, ticker, shares):
 		try:	
 			order = self.api.submit_order(
@@ -109,7 +102,7 @@ class Brokerage:
 			logging.error(f'POST /order API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
-	# Return order id or None if failed
+	# Submits a day market buy order. Returns order id or None if we received an API Err
 	def buy(self, ticker, shares):
 		try:
 			order = self.api.submit_order(
@@ -125,7 +118,7 @@ class Brokerage:
 			logging.error(f'POST /order API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
-	# Return Order object or None if 404
+	# Returns an Order object or None if 404
 	def get_order(self, order_id):
 		try:
 			o = self.api.get_order_by_client_order_id(order_id)
@@ -134,6 +127,7 @@ class Brokerage:
 			logging.error(f'GET /order API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
+	# Returns the cash value of the brokerage account as a float, False if the brokerage account has maxed out it's day trades for the day or None of we receive an API error.
 	def get_buying_power(self):
 		try:
 			account = self.api.get_account()
