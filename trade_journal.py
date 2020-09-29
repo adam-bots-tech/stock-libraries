@@ -1,11 +1,16 @@
 import ezsheets
 
+#If you run a bot on your home network, communicating with it from the outside world can be difficult from a networking standpoint. To get around this,
+#we have the bot write data to a Google spreadsheet in Google Drive and read it's instructions from another spreadsheet.
+
+#This class accepts the Trade class in stock-libraries or piker-bot as it's method arguments
 class TradeJournal():
 
 	def __init__(self, title):
 		self.bootstrapped = False
 		self.title = title
 
+	#We don't want to connect to Google Drive when the class is first constructed, but rather when we manually invoke this method.
 	def bootstrap(self):
 		if self.bootstrapped == False:
 			self.journal = self.__get_trade_journal__()

@@ -26,11 +26,10 @@ class Brokerage:
 			logging.error(f'POST /clock API Code: {err.code} HTTP Code: {err.status_code} Message: {str(err)}')
 			return None
 
-	# Return a list with last ten minutes worth of Bar objects or None if we receive an API error
-	def get_last_ten_bars(self, ticker):
+	def get_last_bars(self, ticker, length, time_segment):
 		def bars():
 			try:
-				barset = self.api.get_barset(ticker, 'minute', 10)
+				barset = self.api.get_barset(ticker, time_segment, length)
 				bars = []
 
 				for b in barset[ticker]:
@@ -42,7 +41,7 @@ class Brokerage:
 				return None
 
 
-		fileCache = cache.get_cache('LAST_THREE_BARS', self.data_folder)
+		fileCache = cache.get_cache(f'LAST_BARS_{length}_{time_segment}', self.data_folder)
 		return fileCache.get(key=ticker, createfunc=bars)
 
 	#Returns a panda.DataFrame with 250 minute bars worth of data or None if we received an API Err. Used for technical analysis of the stock at the time of sale.

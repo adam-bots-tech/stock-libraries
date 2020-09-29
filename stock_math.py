@@ -1,65 +1,71 @@
 import bar
+import math
+import stockstats
+import pandas as pd
 
-#Trying to get rid of the stock stats library slowly
+#I wrapped the stockstats module in a class so I can mock out the math during testing
 class StockMath:
 	def sma_3_close(self, bars):
-		three_bar_avg = 0.0
-
-		i = 0
-		for bar in bars:
-			if i >= 3:
-				break
-
-			three_bar_avg += bar.close
-			i += 1
-
-		return three_bar_avg / 3
+		return self.__sma__(bars, 3)
 
 	def sma_5_close(self, bars):
-		three_bar_avg = 0.0
+		return self.__sma__(bars, 5)
 
-		i = 0
-		for bar in bars:
-			if i >= 3:
-				break
+	def sma_50_close(self, bars):
+		return self.__sma__(bars, 50)
 
-			three_bar_avg += bar.close
-			i += 1
+	def sma_100_close(self, bars):
+		return self.__sma__(bars, 100)
 
-		return three_bar_avg / 5
+	def sma_200_close(self, bars):
+		return self.__sma__(bars, 200)
+
+	def __sma__(self, bars, length):
+		temp = self.__convert_bars__(bars)
+		return temp['stats'][f'close_{length}_sma'][temp['len'] - 1]
 
 	def rsi_10_close(self, bars):
-		gain = 0.0
-		gain_count = 0
-		loss = 0.0
-		loss_count = 0
+		return self.__rsi__(bars, 10)
 
-		i = 0
+	def rsi_250_close(self, bars):
+		return self.__rsi__(bars, 250)
+
+	def __rsi__(self, bars, length):
+		temp = self.__convert_bars__(bars)
+		return temp['stats'][f'rsi_{length}'][temp['len'] - 1]
+
+
+	def macd_close(self, bars):
+		temp = self.__convert_bars__(bars)
+		return temp['stats']['macd'][temp['len'] - 1]
+
+	def volume_50(self, bars):
+		return self.__volume__(bars, 50)
+
+	def __volume__(self, bars, length):
+		temp = self.__convert_bars__(bars)
+		return temp['stats']['volume'][temp['len'] - 1]
+
+	def atr_20(self, bars):
+		return self.__atr__(bars, 20)
+
+	def __atr__(self, bars, length):
+		temp = self.__convert_bars__(bars)
+		return temp['stats'][f'atr_{length}'][temp['len'] - 1]
+
+	def __convert_bars__(self, bars):
+		ds=[]
+
 		for bar in bars:
-			if i >= 10:
-				break
+			ds.append([bar.open, bar.close, bar.high, bar.low, bar.volume])
 
-			diff = bar.close - bar.open
+		df = pd.DataFrame(data=ds, index=range(0, len(bars)), columns=['open','close','high','low','volume'])
 
-			if diff < 0.0:
-				loss += diff
-				loss_count += 1
-			else:
-				gain += diff
-				gain_count += 1
+		return {
+			'stats': stockstats.StockDataFrame.retype(df),
+			'len': df.shape[0]
+		}
 
-			i += 1
 
-		avg_gain = 0
-		avg_loss = 0
 
-		if gain_count != 0:
-			avg_gain = gain / gain_count
 
-		if loss_count != 0:
-			avg_loss = loss / loss_count
-
-		if avg_loss == 0:
-			return 100 - (100 / (1 + avg_gain))
-		else:
-			return 100 - (100 / (1 + (avg_gain / -avg_loss)))
