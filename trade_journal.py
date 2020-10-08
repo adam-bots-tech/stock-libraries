@@ -69,7 +69,9 @@ class TradeJournal():
 		if buy_metadata == None:
 			buy_metadata = row[19]
 		
-		if trade.actual_exit_price > trade.actual_entry_price:
+		if trade.type == 'long' and trade.actual_exit_price > trade.actual_entry_price:
+			gain = True
+		elif trade.type == 'short' and trade.actual_exit_price < trade.actual_entry_price:
 			gain = True
 
 		self.journal[1].updateRow(trade.id + 1, [trade.id, trade.create_date, trade.ticker, trade.type, trade.status, trade.entry_date, trade.exit_date, 
